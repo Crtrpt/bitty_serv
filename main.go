@@ -3,14 +3,18 @@ package main
 import (
 	"bitty/auth"
 	"bitty/docs"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -25,6 +29,14 @@ func DocRouter() http.Handler {
 }
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	fmt.Printf(os.Getenv("name"))
+	fmt.Printf("=========================================================")
 	docs.SwaggerInfo.Host = "127.0.0.1:9081"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
