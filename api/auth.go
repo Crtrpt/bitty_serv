@@ -31,6 +31,7 @@ func Router() http.Handler {
 	}
 	v2 := e.Group("/api/v1/endpoint")
 	{
+		v2.POST("/add", add)
 		v2.GET("/list", list)
 		v2.GET("/search", search)
 	}

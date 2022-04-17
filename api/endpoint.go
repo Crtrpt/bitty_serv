@@ -40,3 +40,34 @@ func search(c *gin.Context) {
 	})
 	return
 }
+
+func add(c *gin.Context) {
+
+	var userId =c.Request.URL.Query().Get("userId")
+
+	var user = &model.User{UserId:userId}
+
+	has ,err := engine.Get(user)
+	if(!has || err!=nil){
+		c.JSON(200, gin.H{
+			"code": 1,
+			"msg": "user not found",
+		})
+		return
+	}
+
+	endpoint := new(model.Endpoint)
+
+	endpoint.Name=user.NickName;
+	endpoint.UserId=user.UserId;
+	endpoint.MemberAmount=0;
+	endpoint.Scenes=0;
+	endpoint.EndpointId=node.Generate().Base64();
+	_, err = engine.Insert(endpoint)
+	
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": endpoint.EndpointId,
+	})
+	return
+}
