@@ -34,6 +34,10 @@ func Router() http.Handler {
 		v2.GET("/list", list)
 		v2.GET("/search", search)
 	}
+	v3 := e.Group("/api/v1/user")
+	{
+		v3.GET("/profile", profile)
+	}
 	return e
 }
 
