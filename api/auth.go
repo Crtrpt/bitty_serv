@@ -88,19 +88,40 @@ type PostLogin struct {
 }
 
 func signup(c *gin.Context) {
+	var form PostSignup
+	if c.BindJSON(&form) == nil {
+		var u, err = engine.Get(&model.User{Account: form.Account})
+		if err != nil {
+			fmt.Printf("ERROR:%s", err)
+		}
+		if u {
+			c.JSON(200, gin.H{
+				"code": 1,
+				"data": "account already exists",
+			})
+			return
+		}
+		// create account
+		user := new(model.User)
+		user.Account = form.Account
+		user.Password = form.Password
+		_, err = engine.Insert(user)
+		if err == nil {
+			c.JSON(200, gin.H{
+				"code": 0,
+				"data": "xxxxxxxxxxxxxxxxx",
+			})
+			return
+		}
+	}
+
 	c.JSON(200, gin.H{
-		"code": 0,
+		"code": 1,
+		"msg":  "user not found or password wrong",
 	})
 }
 
-func list(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"code": 0,
-	})
-}
-
-func search(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"code": 0,
-	})
+type PostSignup struct {
+	Account  string `form:"account" json:"account" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
