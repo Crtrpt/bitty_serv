@@ -10,11 +10,11 @@ func profile(c *gin.Context) {
 
 	var user = &model.User{UserId:userId}
 
-	_,err := engine.Get(user)
-	if(err!=nil){
+	has ,err := engine.Get(user)
+	if(!has || err!=nil){
 		c.JSON(200, gin.H{
 			"code": 1,
-			"msg": "error",
+			"msg": "not found",
 		})
 		return
 	}
