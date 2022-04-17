@@ -40,6 +40,7 @@ func Router() http.Handler {
 	engine.Sync2(new(model.User))
 	engine.Sync2(new(model.Endpoint))
 	engine.Sync2(new(model.UserToken))
+	engine.Sync2(new(model.Msg))
 
 	var rows, _ = engine.Query("select version() `version`")
 	fmt.Printf("\n=========================================================\n\n")
