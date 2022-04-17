@@ -3,6 +3,7 @@ module bitty
 go 1.18
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/fhmq/hmq v0.0.0-20220409045343-c53d8f8a0daa
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-sql-driver/mysql v1.6.0

@@ -9,6 +9,7 @@ import (
 	"bitty/middleware"
 	"bitty/model"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -18,6 +19,7 @@ import (
 
 var engine *xorm.Engine
 var err error
+var node *snowflake.Node
 
 func Router() http.Handler {
 
@@ -27,6 +29,8 @@ func Router() http.Handler {
 		log.Fatal("Error loading .env file")
 	}
 
+	node, err = snowflake.NewNode(1)
+
 	engine, err = xorm.NewEngine("mysql", os.Getenv("db"))
 	engine.ShowSQL(true)
 
@@ -35,6 +39,7 @@ func Router() http.Handler {
 
 	engine.Sync2(new(model.User))
 	engine.Sync2(new(model.Endpoint))
+	engine.Sync2(new(model.UserToken))
 
 	var rows, _ = engine.Query("select version() `version`")
 	fmt.Printf("\n=========================================================\n\n")
@@ -61,16 +66,25 @@ func Router() http.Handler {
 func login(c *gin.Context) {
 	var form PostLogin
 	if c.BindJSON(&form) == nil {
-		var u, err = engine.Get(&model.User{Account: form.Account, Password: form.Password})
+		var user = &model.User{Account: form.Account, Password: form.Password}
+		var u, err = engine.Get(user)
 		if err != nil {
 			fmt.Printf("ERROR:%s", err)
 		}
+		fmt.Print(user)
 		if u {
-			c.JSON(200, gin.H{
-				"code": 0,
-				"data": "xxxxxxxxxxxxxxxxx",
-			})
-			return
+			userToken := new(model.UserToken)
+			userToken.Token = node.Generate().Base64()
+			userToken.UserId = user.UserId
+			_, err = engine.Insert(userToken)
+			if err == nil {
+				c.JSON(200, gin.H{
+					"code": 0,
+					"data": userToken.Token,
+				})
+				return
+			}
+			fmt.Print(err)
 		}
 
 	}
@@ -105,11 +119,26 @@ func signup(c *gin.Context) {
 		user := new(model.User)
 		user.Account = form.Account
 		user.Password = form.Password
+		user.NickName = form.Account
+		user.UserId = node.Generate().Base64()
 		_, err = engine.Insert(user)
 		if err == nil {
+			userToken := new(model.UserToken)
+			userToken.Token = node.Generate().Base64()
+			userToken.Id = user.Id
+			_, err = engine.Insert(userToken)
+			if err == nil {
+				c.JSON(200, gin.H{
+					"code": 0,
+					"data": userToken.Token,
+				})
+				return
+			}
+			fmt.Print(err)
+
 			c.JSON(200, gin.H{
 				"code": 0,
-				"data": "xxxxxxxxxxxxxxxxx",
+				"data": userToken.Token,
 			})
 			return
 		}

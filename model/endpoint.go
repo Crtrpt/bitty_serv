@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 //可以理解为某个用户的通讯录列表
 type Endpoint struct {
 	Id int64
@@ -10,7 +12,7 @@ type Endpoint struct {
 	//用户名头像
 	Avatar string `xorm:"varchar(100)  comment('avatar')"`
 	//创建时间
-	CreatedAt string `xorm:"timestamp  comment('created_at')"`
+	CreatedAt time.Time `xorm:"timestamp  created comment('created_at')"`
 	//成员数量
 	MemberAmount int `xorm:"tinyint  comment('endpoint 0 1to1')"`
 	//聊条场景
