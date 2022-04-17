@@ -17,15 +17,34 @@ var (
 	g errgroup.Group
 )
 
-func main() {
+func DocRouter() http.Handler {
 
-	r := gin.Default()
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	r := gin.New()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.Run(":8080")
+	return r
+}
+
+func main() {
+	docs.SwaggerInfo.Host = "127.0.0.1:9081"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+
+	g.Go(func() error {
+		doc := &http.Server{
+			Addr:         ":9080",
+			Handler:      DocRouter(),
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+
+		err := doc.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+		return err
+	})
 
 	server01 := &http.Server{
-		Addr:         ":8081",
+		Addr:         ":9081",
 		Handler:      auth.Router(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

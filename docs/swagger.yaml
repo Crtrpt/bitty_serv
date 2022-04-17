@@ -2,10 +2,21 @@ info:
   contact: {}
 paths:
   /auth/login:
-    get:
+    post:
       consumes:
       - application/json
-      description: login
+      description: 用户登录
+      parameters:
+      - description: account
+        in: formData
+        name: account
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: password
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -13,7 +24,33 @@ paths:
           description: OK
           schema:
             type: string
-      summary: login get auth code
+      summary: 用户登录
       tags:
-      - example
+      - 授权
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: account
+        in: query
+        name: account
+        required: true
+        type: string
+      - description: password
+        in: query
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 用户注册
+      tags:
+      - 授权
 swagger: "2.0"
