@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bitty/auth"
+	"bitty/api"
 	"bitty/docs"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/joho/godotenv"
@@ -35,8 +34,6 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	fmt.Printf(os.Getenv("name"))
-	fmt.Printf("=========================================================")
 	docs.SwaggerInfo.Host = "127.0.0.1:9081"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
@@ -57,7 +54,7 @@ func main() {
 
 	server01 := &http.Server{
 		Addr:         ":9081",
-		Handler:      auth.Router(),
+		Handler:      api.Router(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
@@ -69,6 +66,10 @@ func main() {
 		}
 		return err
 	})
+
+	// g.Go(func() error {
+	// 	return broker.Start()
+	// })
 
 	if err := g.Wait(); err != nil {
 		log.Fatal(err)
