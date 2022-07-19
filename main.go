@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-
+	"bitty/broker"
 
 	"golang.org/x/sync/errgroup"
 
@@ -26,6 +26,7 @@ func main() {
 	}
 
 
+	
 
 	server01 := &http.Server{
 		Addr:         ":9081",
@@ -42,9 +43,9 @@ func main() {
 		return err
 	})
 
-	// g.Go(func() error {
-	// 	return broker.Start()
-	// })
+	g.Go(func() error {
+		return broker.Start()
+	})
 
 	if err := g.Wait(); err != nil {
 		log.Fatal(err)

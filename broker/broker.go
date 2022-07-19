@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-
 	"github.com/fhmq/hmq/broker"
 )
 
