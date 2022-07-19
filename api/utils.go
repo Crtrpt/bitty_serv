@@ -5,10 +5,13 @@ import(
 	"net/smtp"
 	"github.com/jordan-wright/email"
     "os"
+	 "bytes"
 	"crypto/tls"
 	"crypto/aes"
-    "encoding/hex"
+	"crypto/cipher"
+	"encoding/base64"
 )
+
 
 
 
@@ -40,35 +43,51 @@ func  sendMail(sendto string,msg string,subject string)  error {
 	return nil;
 }
 
-func CheckError(err error) {
-    if err != nil {
-        panic(err)
-    }
+
+func PKCS7Padding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, padText...)
 }
 
-func EncryptAES(key []byte, plaintext string) string {
-	// create cipher
-c, err := aes.NewCipher(key)
-CheckError(err)
-   
-	// allocate space for ciphered data
-out := make([]byte, len(plaintext))
-
-	// encrypt
-c.Encrypt(out, []byte(plaintext))
-	// return hex string
-return hex.EncodeToString(out)
+func PKCS7UnPadding(origData []byte) []byte {
+	length := len(origData)
+	unpadding := int(origData[length-1])
+	return origData[:(length - unpadding)]
 }
 
-func DecryptAES(key []byte, ct string) string {
-	ciphertext, _ := hex.DecodeString(ct)
+func EncryptAES(key []byte, orig string) string {
+	origData := []byte(orig)
+	k := []byte(key)
 
-	c, err := aes.NewCipher(key)
-	CheckError(err)
+	block, _ := aes.NewCipher(k)
 
-	pt := make([]byte, len(ciphertext))
-	c.Decrypt(pt, ciphertext)
+	blockSize := block.BlockSize()
 
-	s := string(pt[:])
-	return s;
+	origData = PKCS7Padding(origData, blockSize)
+
+	blockMode := cipher.NewCBCEncrypter(block, k[:blockSize])
+
+	cryted := make([]byte, len(origData))
+
+	blockMode.CryptBlocks(cryted, origData)
+	return base64.StdEncoding.EncodeToString(cryted)
+}
+
+func DecryptAES(key []byte, cryted string) string {
+	crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
+	k := []byte(key)
+
+	block, _ := aes.NewCipher(k)
+
+	blockSize := block.BlockSize()
+
+	blockMode := cipher.NewCBCDecrypter(block, k[:blockSize])
+
+	orig := make([]byte, len(crytedByte))
+
+	blockMode.CryptBlocks(orig, crytedByte)
+
+	orig = PKCS7UnPadding(orig)
+	return string(orig)
 }
