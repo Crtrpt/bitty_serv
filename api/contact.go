@@ -62,10 +62,21 @@ func add(c *gin.Context) {
 	if c.BindJSON(&form) == nil {
 		var userId = form.UserId
 
+		var contacttest = &model.Contact{}
+
+		has, err := engine.Where("user_id = ? and target_id=?", userId, form.TargetId).Get(contacttest)
+		if has {
+			c.JSON(200, gin.H{
+				"code": 1,
+				"msg":  "contatc already exists ",
+			})
+			return
+		}
+
 		var user = &model.User{}
 
-		has, err := engine.Where("user_id = ?", userId).Get(user)
-		if !has || err != nil {
+		has0, err := engine.Where("user_id = ?", userId).Get(user)
+		if !has0 || err != nil {
 			c.JSON(200, gin.H{
 				"code": 1,
 				"msg":  "target user not found",
@@ -91,8 +102,34 @@ func add(c *gin.Context) {
 		contact.Name = target.NickName
 		contact.UserId = user.UserId
 		contact.TargetId = target.UserId
+		contact.SessionId = node.Generate().Base64()
+
 		//TODO 给 target用户发送私人消息
 		_, err = engine.Insert(contact)
+
+		msg := new(model.Msg)
+		msg.Content = user.NickName + "请求添加你为好友"
+		msg.SourceId = contact.UserId
+		msg.TargetId = contact.TargetId
+		msg.Status = 0
+		//好友请求
+		msg.Type = 0
+		msg.Level = 1
+
+		//TODO 给 target用户发送私人消息
+		_, err = engine.Insert(msg)
+
+		msg1 := new(model.Msg)
+		msg1.Content = "您向" + target.NickName + "发送了好友请求"
+		msg1.SourceId = contact.UserId
+		msg1.TargetId = contact.UserId
+		msg.Status = 1
+		//好友请求
+		msg.Type = 1
+		msg.Level = 0
+
+		//TODO 给 source写日志
+		_, err = engine.Insert(msg1)
 
 		c.JSON(200, gin.H{
 			"code": 0,

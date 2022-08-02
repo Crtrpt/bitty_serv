@@ -40,6 +40,11 @@ func Router() http.Handler {
 		v3.GET("/profile", profile)
 		v3.POST("/save", save)
 	}
+	msg := e.Group("/api/v1/msg")
+	{
+		msg.GET("/unreadMessage", unreadMessage)
+		msg.GET("/allMessage", allMessage)
+	}
 	return e
 }
 

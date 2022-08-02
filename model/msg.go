@@ -4,16 +4,22 @@ import "time"
 
 type Msg struct {
 	Id int64
-	//发送者
-	createUserId int64
-	//发送给谁
-	ContactId int64
+
+	SourceId string `json:"source_id" xorm:"varchar(32)  not null source_id comment('source_id')"`
+	//接受者
+	TargetId string `json:"target_id" xorm:"varchar(32)  not null target_id comment('target_id')"`
 	//消息的内容 文字形式
-	Content string `xorm:"varchar(100) not null  'content' comment('content')"`
+	Content string `json:"content" xorm:"varchar(100) not null  'content' comment('content')"`
 	//消息类型
-	Type int `xorm:"tinyint  'type' comment('type ')"`
+	Type int `json:"type" xorm:"tinyint  'type' comment('type ')"`
 	//消息负载
-	Payload string `xorm:"json not null  'payload' comment('payload')"`
+	Payload string `json:"payload" xorm:"json not null  'payload' comment('payload')"`
 	//创建时间
-	CreatedAt time.Time `xorm:"timestamp  created comment('created_at')"`
+	CreatedAt time.Time `json:"created_at" xorm:"timestamp  created comment('created_at')"`
+	//
+	Level int `json:"level" xorm:"tinyint  'level' comment('level')"`
+	//是否已读
+	IsRead int ` json:"isread" xorm:"tinyint  'isread' comment('isread')"`
+	//处理状态
+	Status int `json:"status" xorm:"tinyint  'status' comment('status')"`
 }
