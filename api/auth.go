@@ -1,27 +1,25 @@
 package api
 
 import (
-	"fmt"
-	"time"
-	"net/http"
-	"strconv"
-	"os"
 	"bitty/middleware"
 	"bitty/model"
+	"fmt"
 	"math/rand"
-	"golang.org/x/sync/errgroup"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-
+	"golang.org/x/sync/errgroup"
 )
 
-
-
 func Router() http.Handler {
-	
+
 	Init()
 	e := gin.New()
-	
+
 	e.Use(gin.Recovery())
 	e.Use(middleware.CORSMiddleware())
 	v1 := e.Group("/api/v1/auth")
@@ -40,6 +38,7 @@ func Router() http.Handler {
 	v3 := e.Group("/api/v1/user")
 	{
 		v3.GET("/profile", profile)
+		v3.POST("/save", save)
 	}
 	return e
 }
@@ -53,12 +52,12 @@ func login(c *gin.Context) {
 			fmt.Printf("ERROR:%s", err)
 		}
 		fmt.Print(user)
-		serverpassword:=DecryptAES([]byte(os.Getenv("encrypt_key")),user.Password);
-		if( serverpassword != form.Password){
+		serverpassword := DecryptAES([]byte(os.Getenv("encrypt_key")), user.Password)
+		if serverpassword != form.Password {
 			c.JSON(200, gin.H{
-				"code": 1,
+				"code":    1,
 				"message": "账号密码不匹配",
-				"data":"",
+				"data":    "",
 			})
 			return
 		}
@@ -66,15 +65,18 @@ func login(c *gin.Context) {
 			userToken := new(model.UserToken)
 			userToken.Token = node.Generate().Base64()
 			userToken.UserId = user.UserId
-			userToken.LastLoginIp=c.ClientIP()
-			fmt.Print(c.Request.Header);
-			userToken.Platform=c.Request.Header["Platform"][0]
-			userToken.ClientVersion=c.Request.Header["Version"][0];
+			userToken.LastLoginIp = c.ClientIP()
+			fmt.Print(c.Request.Header)
+			userToken.Platform = c.Request.Header["Platform"][0]
+			userToken.ClientVersion = c.Request.Header["Version"][0]
 			_, err = engine.Insert(userToken)
 			if err == nil {
 				c.JSON(200, gin.H{
 					"code": 0,
-					"data": userToken.Token,
+					"data": gin.H{
+						"token": userToken.Token,
+						"user":  user,
+					},
 				})
 				return
 			}
@@ -104,49 +106,48 @@ func signup(c *gin.Context) {
 		}
 		if u {
 			c.JSON(200, gin.H{
-				"code": 1,
+				"code":    1,
 				"message": "账户已经存在",
-				"data":"",
+				"data":    "",
 			})
 			return
 		}
-		
+
 		// create account
 		user := new(model.User)
 		user.Account = form.Account
-		user.Password =  EncryptAES([]byte(os.Getenv("encrypt_key")), form.Password)
+		user.Password = EncryptAES([]byte(os.Getenv("encrypt_key")), form.Password)
 		user.NickName = form.Account
-		user.Email=form.Email
+		user.Email = form.Email
 		user.UserId = node.Generate().Base64()
 		fmt.Printf("创建用户")
 		_, err = engine.Insert(user)
 		//发送注册邮件
 
 		if err != nil {
-			fmt.Print(err);
+			fmt.Print(err)
 			c.JSON(200, gin.H{
-				"code": 1,
-				"message":"系统异常",
-				"data": "",
+				"code":    1,
+				"message": "系统异常",
+				"data":    "",
 			})
 			return
 		}
 	}
 
-			c.JSON(200, gin.H{
-				"code": 0,
-				"message":"创建用户成功",
-				"data": "",
-			})
-			return
+	c.JSON(200, gin.H{
+		"code":    0,
+		"message": "创建用户成功",
+		"data":    "",
+	})
+	return
 }
 
 type PostSignup struct {
 	Account  string `form:"account" json:"account" binding:"required"`
 	Password string `form:"password" json:"password" binding:"required"`
-	Email string `form:"email" json:"email" binding:"required"`
+	Email    string `form:"email" json:"email" binding:"required"`
 }
-
 
 var (
 	m errgroup.Group
@@ -155,35 +156,35 @@ var (
 func sendCode(c *gin.Context) {
 	var form SendCodeForm
 	if c.BindJSON(&form) == nil {
-		
-		var u, err = engine.Get(&model.User{Account: form.Account,Email:form.Email})
+
+		var u, err = engine.Get(&model.User{Account: form.Account, Email: form.Email})
 		if err != nil {
 			c.JSON(200, gin.H{
-				"code": 1,
+				"code":    1,
 				"message": "账号不存在",
-				"data":"",
+				"data":    "",
 			})
 		}
 
-		fmt.Print(u);
-		if(u){
+		fmt.Print(u)
+		if u {
 			fmt.Printf("发送找回邮件")
-			m.Go(func() error{
-					
+			m.Go(func() error {
+
 				rand.Seed(time.Now().UnixNano())
-				code:=strconv.Itoa(rand.Intn(10000));
-				err := rdb.Set(ctx,"verif:"+form.Email,code,60*time.Second)
-				if(err!=nil){
-					fmt.Print(err);
+				code := strconv.Itoa(rand.Intn(10000))
+				err := rdb.Set(ctx, "verif:"+form.Email, code, 60*time.Second)
+				if err != nil {
+					fmt.Print(err)
 				}
-				mail_err:=sendMail(form.Email,code,"重置密码验证码");
-				return mail_err;
-			});
-			
+				mail_err := sendMail(form.Email, code, "重置密码验证码")
+				return mail_err
+			})
+
 			c.JSON(200, gin.H{
-				"code": 0,
+				"code":    0,
 				"message": "验证码已经发送到你的邮箱",
-				"data":"",
+				"data":    "",
 			})
 			return
 		}
@@ -197,57 +198,57 @@ func sendCode(c *gin.Context) {
 }
 
 type SendCodeForm struct {
-	Account  string `form:"account" json:"account" binding:"required"`
-	Email string `form:"email" json:"email" binding:"required"`
+	Account string `form:"account" json:"account" binding:"required"`
+	Email   string `form:"email" json:"email" binding:"required"`
 }
 
 func resetpassword(c *gin.Context) {
 	var form resetpasswordForm
 	if c.BindJSON(&form) == nil {
-		var user=model.User{Account: form.Account,Email:form.Email}
+		var user = model.User{Account: form.Account, Email: form.Email}
 		var u, err = engine.Get(&user)
 		if err != nil {
 			c.JSON(200, gin.H{
-				"code": 1,
+				"code":    1,
 				"message": "账号不存在",
-				"data":"",
+				"data":    "",
 			})
 		}
 		if u {
 
-			code,err:=rdb.Get(ctx,"verif:"+form.Email).Result();
-			if(err!=nil || code!=form.Code ){
+			code, err := rdb.Get(ctx, "verif:"+form.Email).Result()
+			if err != nil || code != form.Code {
 				c.JSON(200, gin.H{
-					"code": 1,
+					"code":    1,
 					"message": "验证码错误或者已过期",
-					"data":"",
+					"data":    "",
 				})
 				return
 			}
-			user.Password=form.Password
-			
-			fmt.Printf("更新用户数据 %d",user.Id);
-			_,err=engine.ID(user.Id).Update(user);
-			if(err!=nil){
+			user.Password = form.Password
+
+			fmt.Printf("更新用户数据 %d", user.Id)
+			_, err = engine.ID(user.Id).Update(user)
+			if err != nil {
 				print(err)
 				c.JSON(200, gin.H{
-					"code": 1,
+					"code":    1,
 					"message": "系统异常",
-					"data":"",
+					"data":    "",
 				})
 				return
 			}
 			c.JSON(200, gin.H{
-				"code": 0,
+				"code":    0,
 				"message": "密码重置成功",
-				"data":"",
+				"data":    "",
 			})
 			return
-		}else{
+		} else {
 			c.JSON(200, gin.H{
-				"code": 1,
+				"code":    1,
 				"message": "账号 邮箱不匹配",
-				"data":"",
+				"data":    "",
 			})
 			return
 		}
@@ -262,7 +263,7 @@ func resetpassword(c *gin.Context) {
 
 type resetpasswordForm struct {
 	Account  string `form:"account" json:"account" binding:"required"`
-	Email string `form:"email" json:"email" binding:"required"`
-	Code string `form:"code" json:"code" binding:"required"`
+	Email    string `form:"email" json:"email" binding:"required"`
+	Code     string `form:"code" json:"code" binding:"required"`
 	Password string `form:"password" json:"password" binding:"required"`
 }
