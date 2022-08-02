@@ -8,11 +8,11 @@ import (
 )
 
 func profile(c *gin.Context) {
-	var userId = c.Request.URL.Query().Get("id")
+	var userId = c.Request.URL.Query().Get("user_id")
 
 	var user = &model.User{UserId: userId}
 
-	has, err := engine.Get(user)
+	has, err := engine.Where("user_id = ? ", userId).Get(user)
 	if !has || err != nil {
 		c.JSON(200, gin.H{
 			"code": 1,
@@ -25,6 +25,21 @@ func profile(c *gin.Context) {
 		"code": 0,
 		"data": user,
 	})
+}
+
+func search(c *gin.Context) {
+	var keywords = c.Request.URL.Query().Get("keywords")
+
+	var list []model.User
+
+	var query = engine.Cols("nick_name", "user_id", "status", "avatar").Where("nick_name like ?", keywords+"%").Limit(10)
+	query.Find(&list)
+
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": list,
+	})
+	return
 }
 
 type PostProfile struct {

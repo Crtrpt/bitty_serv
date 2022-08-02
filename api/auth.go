@@ -29,7 +29,7 @@ func Router() http.Handler {
 		v1.POST("/sendcode", sendCode)
 		v1.POST("/resetpassword", resetpassword)
 	}
-	v2 := e.Group("/api/v1/endpoint")
+	v2 := e.Group("/api/v1/contact")
 	{
 		v2.POST("/add", add)
 		v2.GET("/list", list)
@@ -51,7 +51,7 @@ func login(c *gin.Context) {
 		if err != nil {
 			fmt.Printf("ERROR:%s", err)
 		}
-		fmt.Print(user)
+		fmt.Print("登陆用户" + user.NickName)
 		serverpassword := DecryptAES([]byte(os.Getenv("encrypt_key")), user.Password)
 		if serverpassword != form.Password {
 			c.JSON(200, gin.H{

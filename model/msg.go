@@ -7,7 +7,7 @@ type Msg struct {
 	//发送者
 	createUserId int64
 	//发送给谁
-	EndpointId int64
+	ContactId int64
 	//消息的内容 文字形式
 	Content string `xorm:"varchar(100) not null  'content' comment('content')"`
 	//消息类型
