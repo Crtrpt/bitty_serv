@@ -138,11 +138,17 @@ func signup(c *gin.Context) {
 			})
 			return
 		}
+		c.JSON(200, gin.H{
+			"code":    1,
+			"message": "创建用户成功",
+			"data":    "",
+		})
+		return
 	}
 
 	c.JSON(200, gin.H{
-		"code":    0,
-		"message": "创建用户成功",
+		"code":    1,
+		"message": "创建用户异常",
 		"data":    "",
 	})
 	return

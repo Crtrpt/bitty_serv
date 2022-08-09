@@ -45,6 +45,7 @@ func search(c *gin.Context) {
 type PostProfile struct {
 	UserId   string `form:"user_id" json:"user_id" binding:"required"`
 	NickName string `form:"nick_name" json:"nick_name" binding:"required"`
+	Email    string `form:"email" json:"email" binding:"required"`
 	Status   string `form:"status" json:"status" binding:"required"`
 }
 
@@ -59,6 +60,7 @@ func save(c *gin.Context) {
 		fmt.Print(user)
 		user.NickName = form.NickName
 		user.Status = form.Status
+		user.Email = form.Email
 		engine.ID(user.Id).Update(user)
 		c.JSON(200, gin.H{
 			"code": 0,
