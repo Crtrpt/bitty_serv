@@ -19,7 +19,8 @@ func Router() http.Handler {
 
 	Init()
 	e := gin.New()
-
+	e.StaticFS("./upload", http.Dir("./upload"))
+	e.MaxMultipartMemory = 8 << 20
 	e.Use(gin.Recovery())
 	e.Use(middleware.CORSMiddleware())
 	v1 := e.Group("/api/v1/auth")
@@ -45,6 +46,10 @@ func Router() http.Handler {
 		msg.GET("/unreadMessage", unreadMessage)
 		msg.GET("/allMessage", allMessage)
 	}
+	asset := e.Group("/api/v1/asset")
+	{
+		asset.POST("/uploadImage", uploadImage)
+	}
 	return e
 }
 
@@ -60,9 +65,9 @@ func login(c *gin.Context) {
 		serverpassword := DecryptAES([]byte(os.Getenv("encrypt_key")), user.Password)
 		if serverpassword != form.Password {
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "账号密码不匹配",
-				"data":    "",
+				"code": 1,
+				"msg":  "账号密码不匹配",
+				"data": "",
 			})
 			return
 		}
@@ -111,9 +116,9 @@ func signup(c *gin.Context) {
 		}
 		if u {
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "账户已经存在",
-				"data":    "",
+				"code": 1,
+				"msg":  "账户已经存在",
+				"data": "",
 			})
 			return
 		}
@@ -132,24 +137,24 @@ func signup(c *gin.Context) {
 		if err != nil {
 			fmt.Print(err)
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "系统异常",
-				"data":    "",
+				"code": 1,
+				"msg":  "系统异常",
+				"data": "",
 			})
 			return
 		}
 		c.JSON(200, gin.H{
-			"code":    1,
-			"message": "创建用户成功",
-			"data":    "",
+			"code": 1,
+			"msg":  "创建用户成功",
+			"data": "",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"code":    1,
-		"message": "创建用户异常",
-		"data":    "",
+		"code": 1,
+		"msg":  "创建用户异常",
+		"data": "",
 	})
 	return
 }
@@ -171,9 +176,9 @@ func sendCode(c *gin.Context) {
 		var u, err = engine.Get(&model.User{Account: form.Account, Email: form.Email})
 		if err != nil {
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "账号不存在",
-				"data":    "",
+				"code": 1,
+				"msg":  "账号不存在",
+				"data": "",
 			})
 		}
 
@@ -193,9 +198,9 @@ func sendCode(c *gin.Context) {
 			})
 
 			c.JSON(200, gin.H{
-				"code":    0,
-				"message": "验证码已经发送到你的邮箱",
-				"data":    "",
+				"code": 0,
+				"msg":  "验证码已经发送到你的邮箱",
+				"data": "",
 			})
 			return
 		}
@@ -220,9 +225,9 @@ func resetpassword(c *gin.Context) {
 		var u, err = engine.Get(&user)
 		if err != nil {
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "账号不存在",
-				"data":    "",
+				"code": 1,
+				"msg":  "账号不存在",
+				"data": "",
 			})
 		}
 		if u {
@@ -230,9 +235,9 @@ func resetpassword(c *gin.Context) {
 			code, err := rdb.Get(ctx, "verif:"+form.Email).Result()
 			if err != nil || code != form.Code {
 				c.JSON(200, gin.H{
-					"code":    1,
-					"message": "验证码错误或者已过期",
-					"data":    "",
+					"code": 1,
+					"msg":  "验证码错误或者已过期",
+					"data": "",
 				})
 				return
 			}
@@ -243,23 +248,23 @@ func resetpassword(c *gin.Context) {
 			if err != nil {
 				print(err)
 				c.JSON(200, gin.H{
-					"code":    1,
-					"message": "系统异常",
-					"data":    "",
+					"code": 1,
+					"msg":  "系统异常",
+					"data": "",
 				})
 				return
 			}
 			c.JSON(200, gin.H{
-				"code":    0,
-				"message": "密码重置成功",
-				"data":    "",
+				"code": 0,
+				"msg":  "密码重置成功",
+				"data": "",
 			})
 			return
 		} else {
 			c.JSON(200, gin.H{
-				"code":    1,
-				"message": "账号 邮箱不匹配",
-				"data":    "",
+				"code": 1,
+				"msg":  "账号 邮箱不匹配",
+				"data": "",
 			})
 			return
 		}

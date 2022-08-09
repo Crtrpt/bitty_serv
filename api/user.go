@@ -47,6 +47,7 @@ type PostProfile struct {
 	NickName string `form:"nick_name" json:"nick_name" binding:"required"`
 	Email    string `form:"email" json:"email" binding:"required"`
 	Status   string `form:"status" json:"status" binding:"required"`
+	Avatar   string `form:"avatar" json:"avatar" binding:"required"`
 }
 
 func save(c *gin.Context) {
@@ -61,6 +62,7 @@ func save(c *gin.Context) {
 		user.NickName = form.NickName
 		user.Status = form.Status
 		user.Email = form.Email
+		user.Avatar = form.Avatar
 		engine.ID(user.Id).Update(user)
 		c.JSON(200, gin.H{
 			"code": 0,
