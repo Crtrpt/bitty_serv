@@ -47,7 +47,7 @@ type PostProfile struct {
 	NickName string `form:"nick_name" json:"nick_name" binding:"required"`
 	Email    string `form:"email" json:"email" binding:"required"`
 	Status   string `form:"status" json:"status" binding:"required"`
-	Avatar   string `form:"avatar" json:"avatar" binding:"required"`
+	Avatar   string `form:"avatar" json:"avatar" `
 }
 
 func save(c *gin.Context) {

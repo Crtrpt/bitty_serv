@@ -51,14 +51,33 @@ func list(c *gin.Context) {
 	})
 }
 
-type AddContact struct {
+type removeContactForm struct {
 	UserId   string `form:"user_id" json:"user_id" binding:"required"`
 	TargetId string `form:"target_id" json:"target_id" binding:"required"`
 }
 
-func add(c *gin.Context) {
+func removeContact(c *gin.Context) {
+	var form removeContactForm
+	if c.BindJSON(&form) == nil {
+		var contacttest = &model.Contact{}
+		engine.Where("user_id = ? and target_id=?", form.UserId, form.TargetId).Delete(contacttest)
+		c.JSON(200, gin.H{
+			"code": 0,
+			"data": "",
+		})
+		return
+	}
 
-	var form AddContact
+}
+
+type AddContactForm struct {
+	UserId   string `form:"user_id" json:"user_id" binding:"required"`
+	TargetId string `form:"target_id" json:"target_id" binding:"required"`
+}
+
+func addContact(c *gin.Context) {
+
+	var form AddContactForm
 	if c.BindJSON(&form) == nil {
 		var userId = form.UserId
 
@@ -97,7 +116,7 @@ func add(c *gin.Context) {
 			})
 			return
 		}
-
+		//给自己添加联系人
 		contact := new(model.Contact)
 		contact.Name = target.NickName
 		contact.UserId = user.UserId
@@ -139,4 +158,26 @@ func add(c *gin.Context) {
 
 	}
 
+}
+
+func infoContact(c *gin.Context) {
+
+	var userId = c.Request.URL.Query().Get("user_id")
+	var targetId = c.Request.URL.Query().Get("target_id")
+	var contact = &model.Contact{}
+	has, _ := engine.Where("user_id = ? and target_id = ?", userId, targetId).Get(contact)
+	if has {
+		c.JSON(200, gin.H{
+			"code": 0,
+			"data": contact,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"code": 1,
+			"msg":  "not found record",
+			"data": contact,
+		})
+	}
+
+	return
 }

@@ -4,7 +4,7 @@ import "time"
 
 //可以理解为某个用户的通讯录列表
 type Contact struct {
-	Id int64 `json:"-"`
+	Id int64 `json:"id"`
 	//用户的id
 	UserId string `json:"user_id" xorm:"varchar(32) user_id comment('name')"`
 	//目标用户的id

@@ -52,7 +52,7 @@ func Init() {
 	}
 	fmt.Println("key", val)
 
-	//初始化数据库
+	//初始化数据库``
 	engine.SetTableMapper(names.SnakeMapper{})
 	engine.SetColumnMapper(names.SnakeMapper{})
 
@@ -60,6 +60,9 @@ func Init() {
 	engine.Sync2(new(model.Contact))
 	engine.Sync2(new(model.UserToken))
 	engine.Sync2(new(model.Msg))
+	engine.Sync2(new(model.Session))
+	engine.Sync2(new(model.SessionMember))
+	engine.Sync2(new(model.Chat))
 
 	var rows, _ = engine.Query("select version() `version`")
 	fmt.Printf("\n=========================================================\n\n")

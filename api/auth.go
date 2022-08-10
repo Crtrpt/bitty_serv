@@ -32,8 +32,10 @@ func Router() http.Handler {
 	}
 	v2 := e.Group("/api/v1/contact")
 	{
-		v2.POST("/add", add)
+		v2.POST("/add", addContact)
+		v2.POST("/remove", removeContact)
 		v2.GET("/list", list)
+		v2.GET("/info", infoContact)
 		v2.GET("/search", search)
 	}
 	v3 := e.Group("/api/v1/user")
@@ -45,10 +47,23 @@ func Router() http.Handler {
 	{
 		msg.GET("/unreadMessage", unreadMessage)
 		msg.GET("/allMessage", allMessage)
+		msg.POST("/action", messageAction)
 	}
 	asset := e.Group("/api/v1/asset")
 	{
 		asset.POST("/uploadImage", uploadImage)
+	}
+
+	session := e.Group("/api/v1/session")
+	{
+		session.POST("/create", SessionCreate)
+		session.GET("/list", SessionList)
+		session.GET("/info", SessionInfo)
+	}
+
+	chat := e.Group("/api/v1/chat")
+	{
+		chat.POST("/sendMsg", sendMsg)
 	}
 	return e
 }
