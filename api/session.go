@@ -18,11 +18,38 @@ func SessionCreate(c *gin.Context) {
 	fmt.Print("创建聊天室")
 	var form SessionCreateForm
 	if c.BindJSON(&form) == nil {
-		session := new(model.Session)
-		session.Name = "私人聊天室"
-		session.SessionId = node.Generate().Base64()
+
 		switch form.Type {
 		case "chat":
+			var checkSessionList = []model.SessionMember{}
+			//查找我的所有聊天室
+			engine.Where("user_id=?", form.UserId).Find(&checkSessionList)
+
+			var chsids []string
+			for _, e := range checkSessionList {
+				chsids = append(chsids, e.SessionId)
+			}
+
+			var checkSessionMemberList = []model.SessionMember{}
+
+			engine.In("session_id", chsids).Where("user_id = ?", form.TargetId).Find(&checkSessionMemberList)
+
+			fmt.Print(checkSessionMemberList)
+			if len(checkSessionMemberList) > 0 {
+				var exitSession = model.Session{}
+				engine.Where("session_id=?", checkSessionMemberList[0].SessionId).Limit(1).Get(&exitSession)
+				c.JSON(200, gin.H{
+					"code": 0,
+					"msg":  "ok",
+					"data": exitSession,
+				})
+
+				return
+			}
+			//判断有没有
+			session := new(model.Session)
+			session.Name = "私人聊天室"
+			session.SessionId = node.Generate().Base64()
 
 			session.Type = 0
 			engine.Insert((session))
