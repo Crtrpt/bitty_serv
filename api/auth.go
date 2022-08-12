@@ -51,7 +51,9 @@ func Router() http.Handler {
 	}
 	asset := e.Group("/api/v1/asset")
 	{
+		asset.POST("/uploadAvatar", uploadAvatar)
 		asset.POST("/uploadImage", uploadImage)
+		asset.POST("/uploadFile", uploadFile)
 	}
 
 	session := e.Group("/api/v1/session")
