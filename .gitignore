@@ -1,3 +1,5 @@
 *.env
 upload/avatar/*
 upload/session/*
+upload/image/*
+upload/file/*

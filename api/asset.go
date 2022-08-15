@@ -57,7 +57,7 @@ func uploadFile(c *gin.Context) {
 		return
 	}
 	// Upload the file to specific dst.
-	name := node.Generate().Base64() + ".png"
+	name := node.Generate().Base64()
 	c.SaveUploadedFile(file, os.Getenv("asset_file_dir")+name)
 
 	c.JSON(200, gin.H{

@@ -41,6 +41,7 @@ func Router() http.Handler {
 	v3 := e.Group("/api/v1/user")
 	{
 		v3.GET("/profile", profile)
+		v3.GET("/session", UserSession)
 		v3.POST("/save", save)
 	}
 	msg := e.Group("/api/v1/msg")
@@ -59,8 +60,10 @@ func Router() http.Handler {
 	session := e.Group("/api/v1/session")
 	{
 		session.POST("/create", SessionCreate)
+		session.POST("/toggle_suspend", SessionSuspend)
 		session.GET("/list", SessionList)
 		session.GET("/info", SessionInfo)
+		session.GET("/profile", SessionProfile)
 	}
 
 	chat := e.Group("/api/v1/chat")

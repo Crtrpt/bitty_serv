@@ -4,7 +4,7 @@ import "time"
 
 //可以理解为某个用户的通讯录列表
 type Chat struct {
-	Id int64 `json:"id"`
+	Id int64 `json:"-"`
 
 	SessionId string `json:"session_id" xorm:"varchar(32) session_id comment('session_id')"`
 	//发送者用户id

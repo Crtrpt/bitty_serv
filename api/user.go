@@ -26,7 +26,16 @@ func profile(c *gin.Context) {
 		"data": user,
 	})
 }
-
+func UserSession(c *gin.Context) {
+	fmt.Print("获取用户的全部session")
+	var userId = c.Request.URL.Query().Get("user_id")
+	var sessionMember = []model.SessionMember{}
+	engine.Where("user_id = ? ", userId).Find(&sessionMember)
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": sessionMember,
+	})
+}
 func search(c *gin.Context) {
 	var keywords = c.Request.URL.Query().Get("keywords")
 

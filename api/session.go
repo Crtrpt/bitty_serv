@@ -3,9 +3,80 @@ package api
 import (
 	"bitty/model"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+type SessionSuspendForm struct {
+	UserId    string `form:"user_id" json:"user_id" binding:"required"`
+	SessionId string `form:"session_id" json:"session_id" binding:"required"`
+	Value     bool   `form:"value" json:"value"`
+}
+
+func SessionSuspend(c *gin.Context) {
+	var form SessionSuspendForm
+	if c.BindJSON(&form) == nil {
+		var userId = form.UserId
+		var sessionId = form.SessionId
+		var sessionMember model.SessionMember = model.SessionMember{}
+		// var session model.Session = model.Session{}
+		sessionMember.Suspend = form.Value
+		//退出会话
+		engine.Where("session_id= ? and user_id=? ", sessionId, userId).Limit(1).Cols("suspend").Update(&sessionMember)
+		c.JSON(200, gin.H{
+			"code": 0,
+			"data": sessionMember,
+		})
+		return
+	}
+}
+
+type SessionRemoveForm struct {
+	UserId    string `form:"user_id" json:"user_id" binding:"required"`
+	SessionId string `form:"session_id" json:"session_id" binding:"required"`
+}
+
+func SessionRemove(c *gin.Context) {
+	var form SessionRemoveForm
+	if c.BindJSON(&form) == nil {
+		var userId = form.UserId
+		var sessionId = form.SessionId
+		var sessionMember model.SessionMember = model.SessionMember{}
+		// var session model.Session = model.Session{}
+		sessionMember.DeletedAt = time.Time{}
+		//退出会话
+		engine.Where("session_id= ? and user_id=? ", sessionId, userId).Limit(1).Cols("deleted_at").Update(&sessionMember)
+		c.JSON(200, gin.H{
+			"code": 0,
+			"data": "",
+		})
+		return
+	}
+}
+
+type SessionResumeForm struct {
+	UserId    string `form:"user_id" json:"user_id" binding:"required"`
+	SessionId string `form:"session_id" json:"session_id" binding:"required"`
+}
+
+func SessionResume(c *gin.Context) {
+	fmt.Print("恢复会话订阅")
+	var form SessionResumeForm
+	if c.BindJSON(&form) == nil {
+		var userId = form.UserId
+		var sessionId = form.SessionId
+		var sessionMember model.SessionMember = model.SessionMember{}
+		sessionMember.Suspend = true
+		//退出会话
+		engine.Where("session_id= ? and user_id=? ", sessionId, userId).Cols("suspend").Limit(1).Update(&sessionMember)
+		c.JSON(200, gin.H{
+			"code": 0,
+			"data": sessionMember,
+		})
+		return
+	}
+}
 
 type SessionCreateForm struct {
 	UserId   string `form:"user_id" json:"user_id" binding:"required"`
@@ -36,14 +107,15 @@ func SessionCreate(c *gin.Context) {
 
 			fmt.Print(checkSessionMemberList)
 			if len(checkSessionMemberList) > 0 {
+
 				var exitSession = model.Session{}
 				engine.Where("session_id=?", checkSessionMemberList[0].SessionId).Limit(1).Get(&exitSession)
+				//所有的改为未删除状态
 				c.JSON(200, gin.H{
 					"code": 0,
 					"msg":  "ok",
 					"data": exitSession,
 				})
-
 				return
 			}
 			//判断有没有
@@ -125,13 +197,27 @@ func SessionInfo(c *gin.Context) {
 	return
 }
 
+func SessionProfile(c *gin.Context) {
+	fmt.Print("获取session详细信息")
+	var sessionId = c.Request.URL.Query().Get("session_id")
+	var sessionMembers []model.SessionMember = []model.SessionMember{}
+	engine.Cols("user_id").Where("session_id = ?", sessionId).Find(&sessionMembers)
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": gin.H{
+			"member": sessionMembers,
+		},
+	})
+	return
+}
+
 // 获取聊天的session信息
 func SessionList(c *gin.Context) {
 	var userId = c.Request.URL.Query().Get("user_id")
 
 	var sessionMemberList []model.SessionMember
 
-	err := engine.Where("user_id = ?", userId).Limit(150).Find(&sessionMemberList)
+	err := engine.Where("user_id = ? ", userId).Limit(150).Find(&sessionMemberList)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code": 1,
