@@ -17,4 +17,6 @@ type SessionMember struct {
 	Suspend bool `json:"suspend"  xorm:"tinyint(1) suspend comment('suspend')"`
 	//创建时间
 	CreatedAt time.Time `json:"created_at" xorm:"timestamp  created comment('created_at')"`
+	//成员的类型 0  普通用户
+	Type int `json:"type" xorm:"tinyint  type comment('type')"`
 }

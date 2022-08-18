@@ -3,7 +3,6 @@ package api
 import (
 	"bitty/model"
 	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,14 +38,12 @@ type SessionRemoveForm struct {
 
 func SessionRemove(c *gin.Context) {
 	var form SessionRemoveForm
+	fmt.Printf("退出会话")
 	if c.BindJSON(&form) == nil {
 		var userId = form.UserId
 		var sessionId = form.SessionId
 		var sessionMember model.SessionMember = model.SessionMember{}
-		// var session model.Session = model.Session{}
-		sessionMember.DeletedAt = time.Time{}
-		//退出会话
-		engine.Where("session_id= ? and user_id=? ", sessionId, userId).Limit(1).Cols("deleted_at").Update(&sessionMember)
+		engine.Where("session_id= ? and user_id=? ", sessionId, userId).Limit(1).Delete(&sessionMember)
 		c.JSON(200, gin.H{
 			"code": 0,
 			"data": "",
@@ -120,7 +117,7 @@ func SessionCreate(c *gin.Context) {
 			}
 			//判断有没有
 			session := new(model.Session)
-			session.Name = "私人聊天室"
+
 			session.SessionId = node.Generate().Base64()
 
 			session.Type = 0
@@ -240,8 +237,11 @@ func SessionList(c *gin.Context) {
 	err = engine.In("session_id", sessionIds).Find(&sessionList)
 
 	for i, s := range sessionList {
-		sessionList[i].Name = sessionMemberMap[s.SessionId].SessionName
-		sessionList[i].Avatar = sessionMemberMap[s.SessionId].SessionAvatar
+		if s.Type == 0 {
+			sessionList[i].Name = sessionMemberMap[s.SessionId].SessionName
+			sessionList[i].Avatar = sessionMemberMap[s.SessionId].SessionAvatar
+		}
+
 	}
 	fmt.Print(sessionList)
 	//返回session列表

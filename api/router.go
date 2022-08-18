@@ -56,6 +56,7 @@ func Router() http.Handler {
 	{
 		session.Use(TokenMiddleware())
 		session.POST("/create", SessionCreate)
+		session.POST("/remove", SessionRemove)
 		session.POST("/toggle_suspend", SessionSuspend)
 		session.GET("/list", SessionList)
 		session.GET("/info", SessionInfo)
@@ -72,7 +73,10 @@ func Router() http.Handler {
 	{
 		group.Use(TokenMiddleware())
 		group.POST("/create", GroupCreate)
+		group.POST("/remove", GroupRemove)
 		group.GET("/list", GroupList)
+		group.GET("/info", GroupInfo)
+		group.GET("/profile", GroupProfile)
 	}
 	return e
 }
