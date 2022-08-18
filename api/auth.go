@@ -1,11 +1,9 @@
 package api
 
 import (
-	"bitty/middleware"
 	"bitty/model"
 	"fmt"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -14,64 +12,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/sync/errgroup"
 )
-
-func Router() http.Handler {
-
-	Init()
-	e := gin.New()
-	e.StaticFS("./upload", http.Dir("./upload"))
-	e.MaxMultipartMemory = 8 << 20
-	e.Use(gin.Recovery())
-	e.Use(middleware.CORSMiddleware())
-	v1 := e.Group("/api/v1/auth")
-	{
-		v1.POST("/login", login)
-		v1.POST("/signup", signup)
-		v1.POST("/sendcode", sendCode)
-		v1.POST("/resetpassword", resetpassword)
-	}
-	v2 := e.Group("/api/v1/contact")
-	{
-		v2.POST("/add", addContact)
-		v2.POST("/remove", removeContact)
-		v2.GET("/list", list)
-		v2.GET("/info", infoContact)
-		v2.GET("/search", search)
-	}
-	v3 := e.Group("/api/v1/user")
-	{
-		v3.GET("/profile", profile)
-		v3.GET("/session", UserSession)
-		v3.POST("/save", save)
-	}
-	msg := e.Group("/api/v1/msg")
-	{
-		msg.GET("/unreadMessage", unreadMessage)
-		msg.GET("/allMessage", allMessage)
-		msg.POST("/action", messageAction)
-	}
-	asset := e.Group("/api/v1/asset")
-	{
-		asset.POST("/uploadAvatar", uploadAvatar)
-		asset.POST("/uploadImage", uploadImage)
-		asset.POST("/uploadFile", uploadFile)
-	}
-
-	session := e.Group("/api/v1/session")
-	{
-		session.POST("/create", SessionCreate)
-		session.POST("/toggle_suspend", SessionSuspend)
-		session.GET("/list", SessionList)
-		session.GET("/info", SessionInfo)
-		session.GET("/profile", SessionProfile)
-	}
-
-	chat := e.Group("/api/v1/chat")
-	{
-		chat.POST("/sendMsg", sendMsg)
-	}
-	return e
-}
 
 func login(c *gin.Context) {
 	var form PostLogin
@@ -100,6 +40,8 @@ func login(c *gin.Context) {
 			userToken.Platform = c.Request.Header["Platform"][0]
 			userToken.ClientVersion = c.Request.Header["Version"][0]
 			_, err = engine.Insert(userToken)
+
+			rdb.HMSet(ctx, "token:"+userToken.Token, "user_id", user.UserId)
 			if err == nil {
 				c.JSON(200, gin.H{
 					"code": 0,
@@ -150,6 +92,8 @@ func signup(c *gin.Context) {
 		user.NickName = form.Account
 		user.Email = form.Email
 		user.UserId = node.Generate().Base64()
+		user.AllowSearch = true
+		user.AllowAnonSession = false
 		fmt.Printf("创建用户")
 		_, err = engine.Insert(user)
 		//发送注册邮件

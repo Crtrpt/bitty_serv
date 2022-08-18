@@ -13,4 +13,8 @@ type User struct {
 	Email     string    `json:"email" xorm:"varchar(32) not null  comment('email')"`
 	UserId    string    `json:"user_id" xorm:"varchar(32)  not null user_id comment('userId')"`
 	CreatedAt time.Time `json:"created_at" xorm:"timestamp  created comment('created_at')"`
+	//是否可以被搜索到
+	AllowSearch bool `json:"allow_search"  xorm:"tinyint(1)  comment('allow_search')"`
+	//是否接收匿名消息
+	AllowAnonSession bool `json:"allow_anon_session"  xorm:"tinyint(1)   comment('allow_anon_session')"`
 }

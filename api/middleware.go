@@ -1,7 +1,21 @@
-package middleware
+package api
 
 import "github.com/gin-gonic/gin"
 
+func TokenMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Token")
+		if token == "" {
+			c.JSON(200, gin.H{
+				"code": 1,
+				"msg":  "token error",
+			})
+			c.AbortWithStatus(200)
+			return
+		}
+		// rdb.Get(token)
+	}
+}
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

@@ -63,6 +63,8 @@ func Init() {
 	engine.Sync2(new(model.Session))
 	engine.Sync2(new(model.SessionMember))
 	engine.Sync2(new(model.Chat))
+	engine.Sync2(new(model.Group))
+	engine.Sync2(new(model.GroupMember))
 
 	var rows, _ = engine.Query("select version() `version`")
 	fmt.Printf("\n=========================================================\n\n")
