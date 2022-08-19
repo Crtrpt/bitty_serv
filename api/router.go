@@ -76,6 +76,7 @@ func Router() http.Handler {
 		group.POST("/create", GroupCreate)
 		group.POST("/remove", GroupRemove)
 		group.GET("/list", GroupList)
+		group.GET("/search", GroupSearch)
 		group.GET("/info", GroupInfo)
 		group.GET("/profile", GroupProfile)
 	}

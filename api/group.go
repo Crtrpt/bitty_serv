@@ -185,3 +185,18 @@ func GroupProfile(c *gin.Context) {
 
 	return
 }
+
+func GroupSearch(c *gin.Context) {
+	var keywords = c.Request.URL.Query().Get("keywords")
+
+	var list []model.Group
+
+	var query = engine.Where("name like ?", keywords+"%").UseBool().Limit(10)
+	query.Find(&list)
+
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": list,
+	})
+	return
+}
