@@ -1,7 +1,20 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"time"
 
+	"github.com/gin-gonic/gin"
+)
+
+func LogMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now().Unix()
+		c.Next()
+		end := time.Now().Unix()
+		fmt.Printf("[%s] %s %s %d \n", time.Now().Format(time.RFC3339), c.Request.Method, c.Request.URL.Path, end-start)
+	}
+}
 func TokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Token")

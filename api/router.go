@@ -13,7 +13,8 @@ func Router() http.Handler {
 	e.StaticFS("./upload", http.Dir("./upload"))
 	e.MaxMultipartMemory = 8 << 20
 	e.Use(gin.Recovery())
-	e.Use(CORSMiddleware())
+	// e.Use(CORSMiddleware())
+	e.Use(LogMiddleware())
 	v1 := e.Group("/api/v1/auth")
 	{
 		v1.POST("/login", login)
