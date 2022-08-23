@@ -75,6 +75,7 @@ func Router() http.Handler {
 		group.Use(TokenMiddleware())
 		group.POST("/create", GroupCreate)
 		group.POST("/remove", GroupRemove)
+		group.POST("/join", GroupJoin)
 		group.GET("/list", GroupList)
 		group.GET("/search", GroupSearch)
 		group.GET("/info", GroupInfo)

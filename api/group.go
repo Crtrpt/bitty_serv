@@ -98,6 +98,20 @@ func GroupCreate(c *gin.Context) {
 	}
 }
 
+type GroupJoinForm struct {
+	GroupId string `form:"group_id" json:"group_id" binding:"required"`
+}
+
+func GroupJoin(c *gin.Context) {
+	var form GroupJoinForm
+	//TODO加入群组
+	c.JSON(200, gin.H{
+		"code": 1,
+		"msg":  "todo",
+		"data": form,
+	})
+	return
+}
 func GroupList(c *gin.Context) {
 	var userId = rdb.HGet(ctx, "token:"+c.Request.Header.Get("token"), "user_id")
 
